@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PhD Career Advisor · Jesse Thaler's Lab</title>
+  <title>So You Want To… · Career Guide</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -52,6 +53,8 @@
       flex-shrink: 0;
     }
 
+    .header-text { flex: 1; }
+
     .header-text h1 {
       font-size: 1.05rem;
       font-weight: 700;
@@ -72,6 +75,24 @@
       display: inline-block;
       margin-right: 5px;
     }
+
+    .doc-btn {
+      background: rgba(255,255,255,.2);
+      border: 1px solid rgba(255,255,255,.35);
+      color: #fff;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .doc-btn:hover { background: rgba(255,255,255,.3); }
 
     /* ── Message list ────────────────────────────────────────── */
     .messages {
@@ -153,7 +174,7 @@
       padding: 10px 14px;
       border-radius: 16px;
       font-size: .92rem;
-      line-height: 1.55;
+      line-height: 1.6;
       white-space: pre-wrap;
       word-break: break-word;
     }
@@ -170,6 +191,45 @@
       color: #fff;
       border-bottom-right-radius: 4px;
     }
+
+    /* Rendered markdown styles */
+    .bubble.rendered { white-space: normal; }
+    .bubble.rendered p { margin-bottom: .6em; }
+    .bubble.rendered p:last-child { margin-bottom: 0; }
+    .bubble.rendered ul, .bubble.rendered ol { margin: .4em 0 .6em 1.3em; }
+    .bubble.rendered li { margin-bottom: .25em; }
+    .bubble.rendered strong { font-weight: 700; }
+    .bubble.rendered em { font-style: italic; }
+    .bubble.rendered h1, .bubble.rendered h2, .bubble.rendered h3 {
+      font-weight: 700; margin: .6em 0 .3em;
+    }
+    .bubble.rendered code {
+      background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: .85em;
+    }
+    .bubble.rendered pre {
+      background: #f3f4f6; padding: 10px 12px; border-radius: 8px; overflow-x: auto; margin: .5em 0;
+    }
+    .bubble.rendered blockquote {
+      border-left: 3px solid #d1d5db; padding-left: 10px; color: #6b7280; margin: .5em 0;
+    }
+
+    /* Page reference links */
+    .page-ref {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: #ede9fe;
+      color: #4f46e5;
+      border: 1px solid #c4b5fd;
+      border-radius: 5px;
+      padding: 1px 6px;
+      font-size: .8em;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .page-ref:hover { background: #ddd6fe; }
 
     /* ── Typing indicator ────────────────────────────────────── */
     .typing-indicator {
@@ -244,7 +304,6 @@
     .send-btn:hover  { transform: scale(1.07); }
     .send-btn:active { transform: scale(.96); }
     .send-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-
     .send-btn svg { width: 18px; height: 18px; }
 
     /* ── Error notice ────────────────────────────────────────── */
@@ -343,11 +402,73 @@
 
     .disclaimer-footer a { color: #a5b4fc; text-decoration: none; }
     .disclaimer-footer a:hover { text-decoration: underline; }
+
+    /* ── PDF viewer modal ────────────────────────────────────── */
+    .pdf-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .pdf-overlay.open { display: flex; }
+
+    .pdf-modal {
+      background: #fff;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 860px;
+      height: 88vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    }
+
+    .pdf-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f9fafb;
+      flex-shrink: 0;
+    }
+
+    .pdf-modal-header span {
+      font-size: .9rem;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .pdf-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: #6b7280;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: background .15s;
+    }
+
+    .pdf-close-btn:hover { background: #f3f4f6; color: #111827; }
+
+    .pdf-modal iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
 
-<!-- ── Disclaimer modal (must be dismissed) ──────────────────── -->
+<!-- ── Disclaimer modal ───────────────────────────────────────── -->
 <div class="disclaimer-overlay" id="disclaimerOverlay">
   <div class="disclaimer-modal">
     <h2>⚠️ Important Disclaimers — Please Read</h2>
@@ -362,22 +483,36 @@
   </div>
 </div>
 
+<!-- ── PDF viewer modal ───────────────────────────────────────── -->
+<div class="pdf-overlay" id="pdfOverlay">
+  <div class="pdf-modal">
+    <div class="pdf-modal-header">
+      <span id="pdfTitle">📄 So You Want To…</span>
+      <button class="pdf-close-btn" onclick="closePdfViewer()" title="Close">×</button>
+    </div>
+    <iframe id="pdfIframe" src="" title="So You Want To document"></iframe>
+  </div>
+</div>
+
 <div class="chat-window">
   <!-- Header -->
   <div class="chat-header">
-    <div class="avatar">🎓</div>
+    <div class="avatar">📖</div>
     <div class="header-text">
-      <h1>PhD Career Advisor</h1>
-      <p><span class="status-dot"></span>Jesse Thaler's Lab · Ask me anything</p>
+      <h1>So You Want To…</h1>
+      <p><span class="status-dot"></span>Career guide by Prof. Jesse Thaler · Ask me anything</p>
     </div>
+    <button class="doc-btn" onclick="openPdfViewer(1)" title="Open the full document">
+      📄 View document
+    </button>
   </div>
 
   <!-- Messages -->
   <div class="messages" id="messages">
     <div class="intro-banner" id="intro">
-      <div class="icon">📚</div>
-      <h2>Ask questions about the career guide</h2>
-      <p>This tool uses AI to answer questions based on <em>"So You Want To…"</em> by Prof. Jesse Thaler (MIT, Feb 2026). Responses are AI-generated — always verify with the original document.</p>
+      <div class="icon">📖</div>
+      <h2>Ask about the career guide</h2>
+      <p>This tool answers questions based on <em>"So You Want To…"</em> by Prof. Jesse Thaler (MIT, Feb 2026). Responses are AI-generated — always verify with the <button style="background:none;border:none;color:#4f46e5;cursor:pointer;font-size:inherit;padding:0;text-decoration:underline;" onclick="openPdfViewer(1)">original document</button>.</p>
       <div class="suggestions">
         <button class="suggestion-btn" onclick="sendSuggestion(this)">What are the key skills for a successful academic career?</button>
         <button class="suggestion-btn" onclick="sendSuggestion(this)">How do I choose between academia and industry?</button>
@@ -397,7 +532,7 @@
     <textarea
       id="userInput"
       rows="1"
-      placeholder="Ask a question about your career…"
+      placeholder="Ask a question about the career guide…"
       onkeydown="handleKeydown(event)"
       oninput="autoResize(this)"
     ></textarea>
@@ -416,8 +551,10 @@
   const sendBtn    = document.getElementById('sendBtn');
   const introEl    = document.getElementById('intro');
 
-  // Conversation history sent to the API
   const history = [];
+
+  // Configure marked for safe, clean output
+  marked.setOptions({ breaks: true, gfm: true });
 
   function autoResize(el) {
     el.style.height = 'auto';
@@ -440,17 +577,34 @@
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
+  // Convert (page X) references into clickable buttons
+  function linkifyPageRefs(html) {
+    return html.replace(/\(page (\d+)\)/gi, (match, num) =>
+      `<a class="page-ref" href="#" onclick="openPdfViewer(${num}); return false;">📄 page ${num}</a>`
+    );
+  }
+
+  function renderMarkdown(bubble, text) {
+    bubble.innerHTML = linkifyPageRefs(marked.parse(text));
+    bubble.classList.add('rendered');
+  }
+
   function appendMessage(role, text) {
     const wrap = document.createElement('div');
     wrap.className = `msg ${role}`;
 
     const avatarEl = document.createElement('div');
     avatarEl.className = 'msg-avatar';
-    avatarEl.textContent = role === 'user' ? '🧑‍🎓' : '🎓';
+    avatarEl.textContent = role === 'user' ? '🧑‍🎓' : '📖';
 
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
-    bubble.textContent = text;
+
+    if (role === 'user') {
+      bubble.textContent = text;
+    } else {
+      renderMarkdown(bubble, text);
+    }
 
     wrap.appendChild(avatarEl);
     wrap.appendChild(bubble);
@@ -466,7 +620,7 @@
 
     const avatarEl = document.createElement('div');
     avatarEl.className = 'msg-avatar';
-    avatarEl.textContent = '🎓';
+    avatarEl.textContent = '📖';
 
     const bubble = document.createElement('div');
     bubble.className = 'bubble typing-indicator';
@@ -483,10 +637,8 @@
     const text = inputEl.value.trim();
     if (!text) return;
 
-    // Remove intro banner on first message
-    if (introEl) introEl.remove();
+    if (introEl && introEl.parentNode) introEl.remove();
 
-    // Show user bubble
     appendMessage('user', text);
     history.push({ role: 'user', content: text });
 
@@ -494,7 +646,6 @@
     inputEl.style.height = 'auto';
     sendBtn.disabled = true;
 
-    // Typing indicator
     const typingEl = appendTypingIndicator();
 
     let assistantBubble = null;
@@ -519,7 +670,7 @@
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
-        buffer = lines.pop(); // keep incomplete last line
+        buffer = lines.pop();
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
@@ -535,14 +686,28 @@
             break;
           }
 
-          if (payload.done) break;
+          if (payload.done) {
+            // Render final markdown when streaming is complete
+            if (assistantBubble) renderMarkdown(assistantBubble, assistantText);
+            break;
+          }
 
           if (payload.text) {
             if (!assistantBubble) {
               typingEl.remove();
-              assistantBubble = appendMessage('assistant', '');
+              const wrap = document.createElement('div');
+              wrap.className = 'msg assistant';
+              const avatarEl = document.createElement('div');
+              avatarEl.className = 'msg-avatar';
+              avatarEl.textContent = '📖';
+              assistantBubble = document.createElement('div');
+              assistantBubble.className = 'bubble';
+              wrap.appendChild(avatarEl);
+              wrap.appendChild(assistantBubble);
+              messagesEl.appendChild(wrap);
             }
             assistantText += payload.text;
+            // Show raw text during streaming (fast, no lag)
             assistantBubble.textContent = assistantText;
             scrollToBottom();
           }
@@ -567,13 +732,30 @@
     }
   }
 
+  // ── PDF viewer ──────────────────────────────────────────────
+  function openPdfViewer(page) {
+    const overlay = document.getElementById('pdfOverlay');
+    const iframe  = document.getElementById('pdfIframe');
+    const title   = document.getElementById('pdfTitle');
+    iframe.src = `/pdf#page=${page}`;
+    title.textContent = page > 1 ? `📄 So You Want To… — page ${page}` : '📄 So You Want To…';
+    overlay.classList.add('open');
+  }
+
+  function closePdfViewer() {
+    document.getElementById('pdfOverlay').classList.remove('open');
+    document.getElementById('pdfIframe').src = '';
+  }
+
+  // Close PDF overlay on background click
+  document.getElementById('pdfOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closePdfViewer();
+  });
+
   function acceptDisclaimer() {
     document.getElementById('disclaimerOverlay').style.display = 'none';
     inputEl.focus();
   }
-
-  // Focus input on load (only if disclaimer already dismissed)
-  // inputEl.focus() is called inside acceptDisclaimer instead
 </script>
 </body>
 </html>

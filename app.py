@@ -2,7 +2,7 @@ import os
 import json
 import pdfplumber
 import anthropic
-from flask import Flask, render_template, request, Response, stream_with_context
+from flask import Flask, render_template, request, Response, stream_with_context, send_file
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,10 +15,10 @@ PDF_PATH = os.path.join(os.path.dirname(__file__), "So You Want To (1).pdf")
 def extract_pdf_text(path):
     text_parts = []
     with pdfplumber.open(path) as pdf:
-        for page in pdf.pages:
+        for i, page in enumerate(pdf.pages, 1):
             page_text = page.extract_text()
             if page_text:
-                text_parts.append(page_text)
+                text_parts.append(f"--- Page {i} ---\n{page_text}")
     return "\n\n".join(text_parts)
 
 
@@ -33,6 +33,11 @@ SYSTEM_PROMPT = (
     "practical, and encouraging. If the question isn't directly covered in the "
     "document, draw on your general knowledge but note that it goes beyond the "
     "document's content. Keep answers clear and conversational.\n\n"
+    "IMPORTANT: When referencing specific content from the document, always cite "
+    "the page number using the format (page X) — for example: (page 4). This "
+    "helps users navigate directly to that section in the original document.\n\n"
+    "Format your responses using markdown: use **bold** for emphasis, bullet lists "
+    "where appropriate, and clear paragraph breaks.\n\n"
     "CAREER ADVICE DOCUMENT:\n"
     f"{PDF_CONTENT}"
 )
@@ -43,6 +48,11 @@ client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/pdf")
+def serve_pdf():
+    return send_file(PDF_PATH, mimetype="application/pdf")
 
 
 @app.route("/chat", methods=["POST"])
