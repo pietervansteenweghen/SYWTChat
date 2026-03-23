@@ -257,9 +257,110 @@
       font-size: .85rem;
       align-self: center;
     }
+
+    /* ── Disclaimer overlay ──────────────────────────────────── */
+    .disclaimer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .disclaimer-modal {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 560px;
+      width: 100%;
+      padding: 28px 28px 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+
+    .disclaimer-modal h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #b45309;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .disclaimer-modal ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-bottom: 20px;
+    }
+
+    .disclaimer-modal li {
+      font-size: .875rem;
+      color: #374151;
+      line-height: 1.5;
+      padding-left: 22px;
+      position: relative;
+    }
+
+    .disclaimer-modal li::before {
+      content: '•';
+      position: absolute;
+      left: 6px;
+      color: #9ca3af;
+    }
+
+    .disclaimer-modal li strong { color: #111827; }
+
+    .disclaimer-accept {
+      width: 100%;
+      padding: 11px;
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: .92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .disclaimer-accept:hover { background: #4338ca; }
+
+    /* ── Footer disclaimer ───────────────────────────────────── */
+    .disclaimer-footer {
+      text-align: center;
+      font-size: .72rem;
+      color: #9ca3af;
+      padding: 6px 16px 8px;
+      border-top: 1px solid #f3f4f6;
+      background: #fff;
+      flex-shrink: 0;
+      line-height: 1.5;
+    }
+
+    .disclaimer-footer a { color: #a5b4fc; text-decoration: none; }
+    .disclaimer-footer a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
+
+<!-- ── Disclaimer modal (must be dismissed) ──────────────────── -->
+<div class="disclaimer-overlay" id="disclaimerOverlay">
+  <div class="disclaimer-modal">
+    <h2>⚠️ Important Disclaimers — Please Read</h2>
+    <ul>
+      <li><strong>Proof of concept only.</strong> This website is a personal trial project built by <strong>Pieter</strong> purely for experimental and learning purposes. It is not an official tool or service.</li>
+      <li><strong>Not my document.</strong> The underlying career advice document ("So You Want To…", February 2026) was written by <strong>Prof. Jesse Thaler (MIT)</strong>. Pieter claims no ownership, authorship, or affiliation with that document or its contents.</li>
+      <li><strong>AI-generated responses.</strong> All answers are produced by an AI language model (Claude by Anthropic) based on the text of that document. The AI may misinterpret, omit, or misrepresent the original content.</li>
+      <li><strong>Not professional advice.</strong> Nothing on this website constitutes career, legal, academic, or professional advice of any kind. Do not make important decisions based solely on responses from this tool.</li>
+      <li><strong>No guarantees.</strong> Responses may be incomplete, outdated, or inaccurate. Always refer to the <a href="https://www.jthaler.net" target="_blank" rel="noopener">original document and its author</a> for authoritative guidance.</li>
+    </ul>
+    <button class="disclaimer-accept" onclick="acceptDisclaimer()">I understand — continue to the tool</button>
+  </div>
+</div>
 
 <div class="chat-window">
   <!-- Header -->
@@ -275,8 +376,8 @@
   <div class="messages" id="messages">
     <div class="intro-banner" id="intro">
       <div class="icon">📚</div>
-      <h2>Welcome to your career advisor!</h2>
-      <p>I've read Jessie's career advice guide cover to cover. Ask me anything about academic careers, PhD life, research, or your next steps.</p>
+      <h2>Ask questions about the career guide</h2>
+      <p>This tool uses AI to answer questions based on <em>"So You Want To…"</em> by Prof. Jesse Thaler (MIT, Feb 2026). Responses are AI-generated — always verify with the original document.</p>
       <div class="suggestions">
         <button class="suggestion-btn" onclick="sendSuggestion(this)">What are the key skills for a successful academic career?</button>
         <button class="suggestion-btn" onclick="sendSuggestion(this)">How do I choose between academia and industry?</button>
@@ -284,6 +385,11 @@
         <button class="suggestion-btn" onclick="sendSuggestion(this)">How should I approach job applications?</button>
       </div>
     </div>
+  </div>
+
+  <!-- Footer disclaimer -->
+  <div class="disclaimer-footer">
+    ⚠️ <strong>Proof of concept</strong> by Pieter &nbsp;·&nbsp; Document © Prof. Jesse Thaler (MIT, Feb 2026) — not affiliated with this tool &nbsp;·&nbsp; AI responses may be inaccurate &nbsp;·&nbsp; Not professional advice
   </div>
 
   <!-- Input -->
@@ -461,8 +567,13 @@
     }
   }
 
-  // Focus input on load
-  inputEl.focus();
+  function acceptDisclaimer() {
+    document.getElementById('disclaimerOverlay').style.display = 'none';
+    inputEl.focus();
+  }
+
+  // Focus input on load (only if disclaimer already dismissed)
+  // inputEl.focus() is called inside acceptDisclaimer instead
 </script>
 </body>
 </html>
